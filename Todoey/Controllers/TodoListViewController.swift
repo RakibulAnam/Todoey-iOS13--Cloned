@@ -16,6 +16,9 @@ class TodoListViewController: UITableViewController {
     let defaults = UserDefaults.standard
     
     
+    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -32,9 +35,9 @@ class TodoListViewController: UITableViewController {
         newItem3.title = "Talk"
         itemArray.append(newItem3)
         
-        if let item = defaults.array(forKey: "TodoListArray") as? [Item]{
-            itemArray = item
-        }
+//        if let item = defaults.array(forKey: "TodoListArray") as? [Item]{
+//            itemArray = item
+//        }
         
     }
     
@@ -71,6 +74,8 @@ class TodoListViewController: UITableViewController {
         
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done
         
+        self.saveItems()
+        
         tableView.reloadData()
         
         
@@ -97,7 +102,11 @@ class TodoListViewController: UITableViewController {
             
             self.itemArray.append(newItem)
             
-            self.defaults.set(self.itemArray, forKey: "TodoListArray")
+            
+            self.saveItems()
+            
+            
+//            self.defaults.set(self.itemArray, forKey: "TodoListArray")  // This was for UserDefaults
             
             self.tableView.reloadData()
             
@@ -115,6 +124,21 @@ class TodoListViewController: UITableViewController {
         present(alert, animated: true)
         
         
+    }
+    
+    
+    func saveItems(){
+        let encoder = PropertyListEncoder()
+        
+        do{
+            
+            let data = try encoder.encode(itemArray)
+            try data.write(to: dataFilePath!)
+        }catch{
+            
+            print("Error Encoding \(error)")
+            
+        }
     }
     
 

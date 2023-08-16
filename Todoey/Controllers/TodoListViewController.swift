@@ -9,7 +9,7 @@
 import UIKit
 import CoreData
 
-class TodoListViewController: UITableViewController {
+class TodoListViewController: UITableViewController{
 
     
     
@@ -25,6 +25,8 @@ class TodoListViewController: UITableViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        
         
        loadItem()
         
@@ -65,7 +67,10 @@ class TodoListViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         print(itemArray[indexPath.row].title!)
+        // Update the value in our Core Data
+       // itemArray[indexPath.row].setValue("Changed Value", forKey: "title")
         
+       // deleteItem(indexPath: indexPath)
         
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done
         
@@ -138,18 +143,48 @@ class TodoListViewController: UITableViewController {
         
     }
     
-    func loadItem(){
+    func loadItem(with request:NSFetchRequest<Item> =  Item.fetchRequest()){
 
-        let request : NSFetchRequest<Item> = Item.fetchRequest()
         
         do{
             itemArray = try context.fetch(request)
         }catch{
             print("Problem fetching Data \(error)")
         }
+        tableView.reloadData()
 
     }
     
+    func deleteItem(indexPath : IndexPath){
+        
+        context.delete(itemArray[indexPath.row])
+        itemArray.remove(at: indexPath.row)
+        
+    }
+    
+   
+    
 
+}
+
+//MARK: - SearchBar Pattern
+
+extension TodoListViewController : UISearchBarDelegate{
+    
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        let request : NSFetchRequest<Item> = Item.fetchRequest()
+    
+        request.predicate =  NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+        
+        let sortDescriptior = NSSortDescriptor(key: "title", ascending: true)
+        request.sortDescriptors = [sortDescriptior]
+        
+        
+        loadItem(with: request)
+    
+        
+    }
+    
 }
 

@@ -16,6 +16,14 @@ class TodoListViewController: UITableViewController{
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     var itemArray : [Item] = []
     
+    var selectedCategory : Category?{
+        
+        didSet{
+            loadItem()
+        }
+        
+    }
+    
     //let defaults = UserDefaults.standard
     
     
@@ -70,7 +78,7 @@ class TodoListViewController: UITableViewController{
         // Update the value in our Core Data
        // itemArray[indexPath.row].setValue("Changed Value", forKey: "title")
         
-       // deleteItem(indexPath: indexPath)
+       //deleteItem(indexPath: indexPath)
         
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done
         
@@ -99,6 +107,8 @@ class TodoListViewController: UITableViewController{
             newItem.done = false
             
             newItem.title = textfield.text!
+            
+            newItem.parentCategory = self.selectedCategory
             
             self.itemArray.append(newItem)
             
@@ -143,8 +153,20 @@ class TodoListViewController: UITableViewController{
         
     }
     
-    func loadItem(with request:NSFetchRequest<Item> =  Item.fetchRequest()){
+    func loadItem(with request:NSFetchRequest<Item> =  Item.fetchRequest(), predicate: NSPredicate? = nil){
 
+        
+        let categoryPredicate = NSPredicate(format: "parentCategory.name MATCHES %@", (selectedCategory!.name!))
+
+        if let additionalPredicae = predicate{
+
+            let compoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: [categoryPredicate,additionalPredicae])
+            request.predicate = compoundPredicate
+        }else{
+            request.predicate = categoryPredicate
+        }
+
+        
         
         do{
             itemArray = try context.fetch(request)
